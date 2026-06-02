@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}设置 — Cobbler Web{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-gear" style="color:var(--accent);"></i>
+            Cobbler 连接设置
+        </h1>
+    </div>
+
+    <!-- 当前连接状态 -->
+    <div class="card-custom" style="margin-bottom:2rem;" id="status-card">
+        <div style="display:flex;align-items:center;gap:0.8rem;">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="status-text" style="font-size:0.9rem;color:var(--text-muted);">
+                正在检测连接状态...
+            </span>
+        </div>
+    </div>
+
+    <!-- 配置表单 -->
+    <div class="card-custom" style="max-width:640px;">
+        <h3 style="font-size:1rem;margin-bottom:1.5rem;">
+            连接配置
+        </h3>
+
+        <form method="POST" action="/settings">
+
+            <!-- Cobbler URL -->
+            <div style="margin-bottom:1.2rem;">
+                <label class="form-label">Cobbler API 地址</label>
+                <input type="text" name="cobbler_url" id="input-url"
+                       class="form-control"
+                       value="{{ config.cobbler_url }}"
+                       placeholder="http://192.168.1.10/cobbler_api">
+                <div class="form-text">
+                    格式: http://&lt;IP或主机名&gt;/cobbler_api
+                </div>
+            </div>
+
+            <!-- Username -->
+            <div style="margin-bottom:1.2rem;">
+                <label class="form-label">用户名</label>
+                <input type="text" name="cobbler_user" id="input-user"
+                       class="form-control"
+                       value="{{ config.cobbler_user }}"
+                       placeholder="cobbler">
+            </div>
+
+            <!-- Password -->
+            <div style="margin-bottom:1.5rem;">
+                <label class="form-label">密码</label>
+                <input type="password" name="cobbler_password" id="input-password"
+                       class="form-control"
+                       value="{{ config.cobbler_password }}"
+                       placeholder="cobbler">
+            </div>
+
+            <hr class="section-divider">
+
+            <div style="display:flex;gap:0.8rem;justify-content:flex-end;flex-wrap:wrap;">
+                <button type="button" class="btn-ghost" id="btn-test"
+                        onclick="testNewConnection()">
+                    <i class="bi bi-ethernet"></i> 测试连接
+                </button>
+                <button type="submit" class="btn-accent">
+                    <i class="bi bi-check-lg"></i> 保存配置
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ── 页面加载时测试当前配置的连接状态 ──
+    window.addEventListener('load', function() {
+        testCurrentConnection();
+    });
+
+    function testCurrentConnection() {
+        const dot  = document.getElementById('status-dot');
+        const text = document.getElementById('status-text');
+        dot.className = 'status-dot';
+        dot.style.background = 'var(--text-muted)';
+        text.textContent = '正在检测连接状态...';
+
+        fetch('/settings/test', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                if (data.connected) {
+                    dot.className = 'status-dot online';
+                    text.style.color = 'var(--success)';
+                    text.textContent = 'Cobbler 在线: ' + data.message;
+                } else {
+                    dot.className = 'status-dot offline';
+                    text.style.color = 'var(--danger)';
+                    text.textContent = 'Cobbler 离线: ' + data.message;
+                }
+            })
+            .catch(err => {
+                dot.className = 'status-dot offline';
+                text.style.color = 'var(--danger)';
+                text.textContent = '检测请求失败: ' + err;
+            });
+    }
+
+    function testNewConnection() {
+        const btn  = document.getElementById('btn-test');
+        const url  = document.getElementById('input-url').value.trim();
+        const user = document.getElementById('input-user').value.trim();
+        const pass = document.getElementById('input-password').value.trim();
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bi bi-hourglass-split"></i> 测试中...';
+
+        fetch('/settings/test-new', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                cobbler_url: url,
+                cobbler_user: user,
+                cobbler_password: pass
+            })
+        })
+        .then(res => res.json())
+        .then(data => {
+            const dot  = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            if (data.connected) {
+                dot.className = 'status-dot online';
+                text.style.color = 'var(--success)';
+                text.textContent = '连接成功: ' + data.message;
+            } else {
+                dot.className = 'status-dot offline';
+                text.style.color = 'var(--danger)';
+                text.textContent = '连接失败: ' + data.message;
+            }
+        })
+        .catch(err => {
+            const dot  = document.getElementById('status-dot');
+            const text = document.getElementById('status-text');
+            dot.className = 'status-dot offline';
+            text.style.color = 'var(--danger)';
+            text.textContent = '请求失败: ' + err;
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-ethernet"></i> 测试连接';
+        });
+    }
+</script>
+{% endblock %}
+

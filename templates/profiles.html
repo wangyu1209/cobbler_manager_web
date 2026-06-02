@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Profiles — Cobbler Web{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            Profiles
+            <span class="count-badge">{{ profiles|length }} 个</span>
+        </h1>
+    </div>
+
+    {% if profiles %}
+    <div class="table-wrap">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>名称</th>
+                    <th>发行版</th>
+                    <th>架构</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in profiles %}
+                <tr>
+                    <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                    <td>
+                        <span style="color:var(--text-bright);font-weight:500;">
+                            {{ p.name }}
+                        </span>
+                    </td>
+                    <td>{{ p.distro }}</td>
+                    <td>{{ p.arch }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-collection"></i>
+        <h3>暂无 Profile</h3>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

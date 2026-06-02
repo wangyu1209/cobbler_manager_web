@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cobbler Web{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        /* ── 全局变量 ─────────────────────────────────────── */
+        :root {
+            --bg-deep:    #060a10;
+            --bg:         #0b0f16;
+            --surface:    #111822;
+            --card:       #161d2a;
+            --border:     #1e2a3a;
+            --border-hover: #2a3a50;
+            --accent:     #e89830;
+            --accent-hover: #f0a840;
+            --accent-glow: rgba(232, 152, 48, 0.15);
+            --text:       #b8c0cc;
+            --text-bright:#edf0f5;
+            --text-muted: #556070;
+            --success:    #34c759;
+            --danger:     #f04040;
+            --info:       #3a8ef6;
+            --warning:    #e89830;
+            --font-heading: 'Syne', sans-serif;
+            --font-body:    'DM Mono', 'Courier New', monospace;
+        }
+
+        /* ── 重置与基础 ───────────────────────────────────── */
+        *, *::before, *::after {
+            margin: 0; padding: 0; box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-weight: 400;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        body::before {
+            content: '';
+            position: fixed; inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0z' fill='%23ffffff' fill-opacity='0.015'/%3E%3C/svg%3E");
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── 排版 ────────────────────────────────────────── */
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 700;
+            color: var(--text-bright);
+            line-height: 1.2;
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+        a:hover { color: var(--accent-hover); }
+
+        code, pre {
+            font-family: var(--font-body);
+        }
+
+        /* ── 导航栏 ──────────────────────────────────────── */
+        .navbar {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .navbar-brand {
+            font-family: var(--font-heading);
+            font-weight: 800;
+            font-size: 1.2rem;
+            color: var(--text-bright) !important;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .navbar-brand .brand-dot {
+            width: 10px; height: 10px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .nav-link {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            color: var(--text-muted) !important;
+            padding: 0.4rem 0.9rem !important;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .nav-link:hover {
+            color: var(--text-bright) !important;
+            background: rgba(255,255,255,0.04);
+        }
+        .nav-link.active {
+            color: var(--accent) !important;
+            background: var(--accent-glow);
+        }
+
+        /* ── 主容器 ──────────────────────────────────────── */
+        .main-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── 页面标题 ────────────────────────────────────── */
+        .page-header {
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-header h1 {
+            font-size: 1.8rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .page-header .count-badge {
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 0.2rem 0.7rem;
+            border-radius: 20px;
+            margin-left: 0.5rem;
+        }
+
+        /* ── 卡片 ────────────────────────────────────────── */
+        .card-custom {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-left: 3px solid var(--accent);
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .card-custom:hover {
+            border-color: var(--border-hover);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .card-custom .card-value {
+            font-family: var(--font-heading);
+            font-size: 2.4rem;
+            font-weight: 800;
+            color: var(--text-bright);
+            line-height: 1;
+        }
+
+        .card-custom .card-label {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 0.4rem;
+        }
+
+        .card-custom .card-icon {
+            font-size: 1.6rem;
+            color: var(--accent);
+            margin-bottom: 0.8rem;
+        }
+
+        .card-status .card-icon.success { color: var(--success); }
+        .card-status .card-icon.error   { color: var(--danger); }
+
+        /* ── 表格 ────────────────────────────────────────── */
+        .table-custom {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .table-custom thead th {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-muted);
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0.8rem 1rem;
+            white-space: nowrap;
+        }
+        .table-custom thead th:first-child { border-radius: 8px 0 0 0; }
+        .table-custom thead th:last-child  { border-radius: 0 8px 0 0; }
+
+        .table-custom tbody td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 0.82rem;
+        }
+
+        .table-custom tbody tr {
+            transition: background 0.15s ease;
+        }
+        .table-custom tbody tr:hover {
+            background: rgba(255,255,255,0.02);
+        }
+        .table-custom tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .table-wrap {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        /* ── 徽章 ────────────────────────────────────────── */
+        .badge-status {
+            font-family: var(--font-body);
+            font-size: 0.7rem;
+            font-weight: 500;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .badge-on {
+            background: rgba(52, 199, 89, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(52, 199, 89, 0.25);
+        }
+        .badge-on::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse-dot 2s ease-in-out infinite;
+        }
+
+        .badge-off {
+            background: rgba(255,255,255,0.04);
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+        .badge-off::before {
+            content: '';
+            width: 6px; height: 6px;
+            background: var(--text-muted);
+            border-radius: 50%;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50%      { opacity: 0.5; transform: scale(0.8); }
+        }
+
+        /* ── 按钮 ────────────────────────────────────────── */
+        .btn-accent {
+            background: var(--accent);
+            color: #0a0a0a;
+            border: none;
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.82rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-accent:hover {
+            background: var(--accent-hover);
+            color: #0a0a0a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 16px rgba(232,152,48,0.25);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.82rem;
+            padding: 0.55rem 1.2rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-ghost:hover {
+            border-color: var(--border-hover);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-bright);
+        }
+
+        .btn-danger-outline {
+            background: transparent;
+            color: var(--danger);
+            border: 1px solid rgba(240,64,64,0.3);
+            font-family: var(--font-body);
+            font-weight: 500;
+            font-size: 0.78rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-danger-outline:hover {
+            background: rgba(240,64,64,0.1);
+            border-color: var(--danger);
+        }
+
+        .btn-sm-action {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+            font-family: var(--font-body);
+            font-size: 0.75rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .btn-sm-action:hover {
+            color: var(--text-bright);
+            border-color: var(--border-hover);
+            background: rgba(255,255,255,0.03);
+        }
+        .btn-sm-action.accent:hover {
+            color: var(--accent);
+            border-color: rgba(232,152,48,0.3);
+        }
+        .btn-sm-action.info:hover {
+            color: var(--info);
+            border-color: rgba(58,142,246,0.3);
+        }
+
+        /* ── 表单 ────────────────────────────────────────── */
+        .form-label {
+            font-family: var(--font-body);
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.4rem;
+            display: block;
+        }
+
+        .form-control, .form-select {
+            font-family: var(--font-body);
+            font-size: 0.85rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-bright);
+            padding: 0.6rem 0.9rem;
+            border-radius: 6px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+            width: 100%;
+        }
+        .form-control:focus, .form-select:focus {
+            background: var(--surface);
+            border-color: var(--accent);
+            color: var(--text-bright);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            outline: none;
+        }
+        .form-control::placeholder {
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+
+        .form-text {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            margin-top: 0.3rem;
+        }
+
+        /* ── 提示消息 ────────────────────────────────────── */
+        .alert-custom {
+            font-family: var(--font-body);
+            font-size: 0.82rem;
+            padding: 0.8rem 1.2rem;
+            border-radius: 8px;
+            border: 1px solid;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert-success-custom {
+            background: rgba(52,199,89,0.08);
+            border-color: rgba(52,199,89,0.2);
+            color: var(--success);
+        }
+        .alert-error-custom {
+            background: rgba(240,64,64,0.08);
+            border-color: rgba(240,64,64,0.2);
+            color: var(--danger);
+        }
+        .alert-info-custom {
+            background: rgba(58,142,246,0.08);
+            border-color: rgba(58,142,246,0.2);
+            color: var(--info);
+        }
+
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Kickstart 代码块 ────────────────────────────── */
+        .code-block {
+            background: var(--bg-deep);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            font-family: var(--font-body);
+            font-size: 0.8rem;
+            line-height: 1.7;
+            color: #a8d4a0;
+            overflow-x: auto;
+            max-height: 700px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        /* ── 状态指示器 ──────────────────────────────────── */
+        .status-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-dot.online  {
+            background: var(--success);
+            box-shadow: 0 0 8px rgba(52,199,89,0.4);
+        }
+        .status-dot.offline {
+            background: var(--danger);
+            box-shadow: 0 0 8px rgba(240,64,64,0.4);
+        }
+
+        /* ── 分隔线 ──────────────────────────────────────── */
+        .section-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 2rem 0;
+        }
+
+        /* ── 配置摘要卡 ──────────────────────────────────── */
+        .config-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 0.8rem;
+        }
+
+        .config-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.8rem 1rem;
+        }
+        .config-item .config-label {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .config-item .config-value {
+            font-size: 0.9rem;
+            color: var(--text-bright);
+            margin-top: 0.2rem;
+        }
+
+        /* ── 动画 ────────────────────────────────────────── */
+        .fade-in {
+            opacity: 0;
+            animation: fadeIn 0.5s ease forwards;
+        }
+        .fade-in-d1 { animation-delay: 0.05s; }
+        .fade-in-d2 { animation-delay: 0.1s; }
+        .fade-in-d3 { animation-delay: 0.15s; }
+        .fade-in-d4 { animation-delay: 0.2s; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── 空状态 ──────────────────────────────────────── */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+
+        /* ── 操作按钮组 ──────────────────────────────────── */
+        .action-group {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+        }
+
+        /* ── 响应式 ──────────────────────────────────────── */
+        @media (max-width: 768px) {
+            .page-header h1 { font-size: 1.4rem; }
+            .card-custom .card-value { font-size: 1.8rem; }
+            .config-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ── 导航栏 ─────────────────────────────────────────── -->
+    <nav class="navbar">
+        <div class="main-container" style="padding-top:0;padding-bottom:0;">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem;">
+                <a class="navbar-brand" href="/">
+                    <span class="brand-dot"></span>
+                    COBBLER WEB
+                </a>
+                <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                    <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+                       href="/">
+                        <i class="bi bi-grid-1x2"></i> 仪表盘
+                    </a>
+                    <a class="nav-link {% if request.endpoint == 'systems' %}active{% endif %}"
+                       href="/systems">
+                        <i class="bi bi-hdd-stack"></i> Systems
+                    </a>
+                    <a class="nav-link {% if request.endpoint == 'profiles' %}active{% endif %}"
+                       href="/profiles">
+                        <i class="bi bi-collection"></i> Profiles
+                    </a>
+                    <a class="nav-link {% if request.endpoint == 'add_system' %}active{% endif %}"
+                       href="/system/add">
+                        <i class="bi bi-plus-circle"></i> 添加 System
+                    </a>
+                    <a class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}"
+                       href="/settings">
+                        <i class="bi bi-gear"></i> 设置
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ── 主内容区 ───────────────────────────────────────── -->
+    <div class="main-container">
+        <!-- Flash 消息 -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert-custom
+                {% if category == 'success' %}alert-success-custom
+                {% elif category == 'error' %}alert-error-custom
+                {% else %}alert-info-custom{% endif %}">
+                <i class="bi
+                    {% if category == 'success' %}bi-check-circle-fill
+                    {% elif category == 'error' %}bi-exclamation-triangle-fill
+                    {% else %}bi-info-circle-fill{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,21 @@
+version: "3.8"
+
+services:
+  cobbler-web:
+    build: .
+    container_name: cobbler-web
+    ports:
+      - "5000:5000"
+    environment:
+      # ── 根据实际环境修改以下三项 ──
+      - COBBLER_URL=http://192.168.1.10/cobbler_api
+      - COBBLER_USER=cobbler
+      - COBBLER_PASSWORD=cobbler
+      # ── Flask session 加密密钥（生产环境请改为随机字符串）──
+      - SECRET_KEY=change-this-to-a-random-string-in-production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

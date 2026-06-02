@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}预览 {{ hostname }} — Cobbler Web{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-eye" style="color:var(--info);"></i>
+            Kickstart 预览
+        </h1>
+        <a href="/systems" class="btn-ghost">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+
+    <div class="card-custom" style="margin-bottom:1.5rem;">
+        <div class="config-grid" style="grid-template-columns:repeat(3,1fr);">
+            <div class="config-item">
+                <div class="config-label">System</div>
+                <div class="config-value">{{ hostname }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">Profile</div>
+                <div class="config-value">{{ profile }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">字符数</div>
+                <div class="config-value">{{ kickstart|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="code-block">{{ kickstart }}</div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+{% block title %}Systems — Cobbler Web{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            Systems
+            <span class="count-badge">{{ systems|length }} 台</span>
+        </h1>
+        <a href="/system/add" class="btn-accent">
+            <i class="bi bi-plus-circle"></i> 添加 System
+        </a>
+    </div>
+
+    {% if systems %}
+    <div class="table-wrap">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>名称</th>
+                    <th>Profile</th>
+                    <th>IP</th>
+                    <th>MAC</th>
+                    <th>PXE</th>
+                    <th style="width:280px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in systems %}
+                <tr>
+                    <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                    <td>
+                        <span style="color:var(--text-bright);font-weight:500;">
+                            {{ s.name }}
+                        </span>
+                    </td>
+                    <td>{{ s.profile }}</td>
+                    <td>
+                        {% if s.net_info.ip %}
+                            <code style="color:var(--text-bright);">{{ s.net_info.ip }}</code>
+                        {% else %}
+                            <span style="color:var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.net_info.mac %}
+                            <code style="font-size:0.75rem;color:var(--text-muted);">{{ s.net_info.mac }}</code>
+                        {% else %}
+                            <span style="color:var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if s.net_info.netboot_enabled %}
+                            <span class="badge-status badge-on">ON</span>
+                        {% else %}
+                            <span class="badge-status badge-off">OFF</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="action-group">
+                            <!-- 重装 -->
+                            <a href="/system/{{ s.name }}/reinstall"
+                               class="btn-sm-action accent"
+                               title="重装">
+                                <i class="bi bi-arrow-repeat"></i> 重装
+                            </a>
+
+                            <!-- 预览 -->
+                            <a href="/system/{{ s.name }}/preview"
+                               class="btn-sm-action info"
+                               title="预览 Kickstart">
+                                <i class="bi bi-eye"></i> 预览
+                            </a>
+
+                            <!-- 取消重装 -->
+                            <form method="POST" action="/system/{{ s.name }}/cancel"
+                                  style="display:inline;">
+                                <button type="submit" class="btn-sm-action"
+                                        title="取消重装标记">
+                                    <i class="bi bi-x-circle"></i> 取消
+                                </button>
+                            </form>
+
+                            <!-- 删除 -->
+                            <form method="POST" action="/system/{{ s.name }}/delete"
+                                  style="display:inline;"
+                                  onsubmit="return confirm('确定要删除系统「{{ s.name }}」吗？此操作不可逆。');">
+                                <button type="submit" class="btn-danger-outline"
+                                        title="删除">
+                                    <i class="bi bi-trash3"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-hdd-stack"></i>
+        <h3>暂无 System</h3>
+        <p style="margin-top:0.5rem;">
+            <a href="/system/add">点击添加第一个 System</a>
+        </p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

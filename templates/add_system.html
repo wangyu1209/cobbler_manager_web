@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}添加 System — Cobbler Web{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1><i class="bi bi-plus-circle" style="color:var(--accent);"></i> 添加 System</h1>
+        <a href="/systems" class="btn-ghost">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+
+    <div class="card-custom" style="border-left-color:var(--success);max-width:720px;">
+        <form method="POST" action="/system/add">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;">
+
+                <!-- Hostname -->
+                <div>
+                    <label class="form-label">主机名 *</label>
+                    <input type="text" name="hostname" class="form-control"
+                           value="{{ form.get('hostname', '') }}"
+                           placeholder="webserver01" required>
+                </div>
+
+                <!-- Profile -->
+                <div>
+                    <label class="form-label">Profile *</label>
+                    <select name="profile" class="form-select" required>
+                        <option value="">-- 选择 Profile --</option>
+                        {% for p in profiles %}
+                        <option value="{{ p.name }}"
+                            {% if form.get('profile') == p.name %}selected{% endif %}>
+                            {{ p.name }} ({{ p.distro }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- IP -->
+                <div>
+                    <label class="form-label">IP 地址 *</label>
+                    <input type="text" name="ip" class="form-control"
+                           value="{{ form.get('ip', '') }}"
+                           placeholder="192.168.1.100" required>
+                </div>
+
+                <!-- Netmask -->
+                <div>
+                    <label class="form-label">子网掩码</label>
+                    <input type="text" name="netmask" class="form-control"
+                           value="{{ form.get('netmask', '255.255.255.0') }}"
+                           placeholder="255.255.255.0">
+                </div>
+
+                <!-- Gateway -->
+                <div>
+                    <label class="form-label">默认网关 *</label>
+                    <input type="text" name="gateway" class="form-control"
+                           value="{{ form.get('gateway', '') }}"
+                           placeholder="192.168.1.1" required>
+                </div>
+
+                <!-- MAC -->
+                <div>
+                    <label class="form-label">MAC 地址 *</label>
+                    <input type="text" name="mac" class="form-control"
+                           value="{{ form.get('mac', '') }}"
+                           placeholder="AA:BB:CC:DD:EE:FF" required>
+                </div>
+
+            </div>
+
+            <!-- DNS（跨两列） -->
+            <div style="margin-top:1.2rem;">
+                <label class="form-label">DNS 服务器 *（多个用逗号分隔）</label>
+                <input type="text" name="dns" class="form-control"
+                       value="{{ form.get('dns', '') }}"
+                       placeholder="8.8.8.8, 8.8.4.4" required>
+                <div class="form-text">多个 DNS 地址请用英文逗号分隔</div>
+            </div>
+
+            <hr class="section-divider">
+
+            <div style="display:flex;gap:0.8rem;justify-content:flex-end;">
+                <a href="/systems" class="btn-ghost">取消</a>
+                <button type="submit" class="btn-accent">
+                    <i class="bi bi-check-lg"></i> 提交并同步
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
