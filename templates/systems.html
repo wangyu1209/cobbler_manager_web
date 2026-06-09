@@ -6,18 +6,92 @@
     <div class="page-header">
         <h1>
             Systems
-            <span class="count-badge">{{ systems|length }} 台</span>
+            <span class="count-badge" id="total-count">{{ systems|length }} 台</span>
         </h1>
         <a href="/system/add" class="btn-accent">
             <i class="bi bi-plus-circle"></i> 添加 System
         </a>
     </div>
 
+    <!-- ── 搜索栏 + 选择操作 ─────────────────────────────── -->
+    <div style="display:flex;gap:1rem;align-items:flex-start;margin-bottom:1.5rem;flex-wrap:wrap;">
+
+        <div style="flex:1;min-width:320px;position:relative;">
+            <div style="display:flex;align-items:flex-start;gap:0.5rem;">
+                <i class="bi bi-search"
+                   style="margin-top:0.7rem;color:var(--text-muted);font-size:0.9rem;flex-shrink:0;"></i>
+                <div style="flex:1;position:relative;">
+                    <textarea id="searchInput"
+                              class="form-control"
+                              rows="3"
+                              style="resize:vertical;min-height:70px;line-height:1.6;"
+                              placeholder="每行输入一个关键词（主机名、IP、MAC 等）"
+                              oninput="filterTable()"></textarea>
+                    <button onclick="clearSearch()" id="btn-clear"
+                            style="position:absolute;right:8px;top:8px;
+                                   background:var(--surface);border:1px solid var(--border);
+                                   color:var(--text-muted);cursor:pointer;
+                                   font-size:0.75rem;border-radius:4px;padding:0.15rem 0.4rem;display:none;">
+                        <i class="bi bi-x-lg"></i> 清除
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;padding-top:0.3rem;">
+            <button onclick="selectAll()" class="btn-sm-action">全选</button>
+            <button onclick="deselectAll()" class="btn-sm-action">取消</button>
+            <button onclick="invertSelection()" class="btn-sm-action">反选</button>
+            <span id="selected-count"
+                  style="font-size:0.78rem;color:var(--text-muted);margin-left:0.4rem;">
+                已选 0 台
+            </span>
+        </div>
+    </div>
+
+    <!-- ── 批量操作按钮条 ─────────────────────────────────── -->
+    <div id="batch-bar"
+         style="display:none;background:var(--accent-glow);border:1px solid rgba(232,152,48,0.3);
+                border-radius:8px;padding:0.8rem 1.2rem;margin-bottom:1rem;
+                align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.8rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+            <i class="bi bi-lightning-charge" style="color:var(--accent);"></i>
+            <span style="font-size:0.82rem;color:var(--text-bright);">
+                已选中 <strong id="batch-count">0</strong> 台设备
+            </span>
+        </div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+            <button onclick="openBatchModal('reinstall')" class="btn-accent" style="font-size:0.78rem;">
+                <i class="bi bi-arrow-repeat"></i> 批量重装
+            </button>
+            <button onclick="batchCancel()" class="btn-sm-action" style="font-size:0.78rem;">
+                <i class="bi bi-x-circle"></i> 取消重装标记
+            </button>
+        </div>
+    </div>
+
+    <!-- ── 搜索结果提示 ──────────────────────────────────── -->
+    <div id="search-info" style="display:none;margin-bottom:0.8rem;">
+        <span style="font-size:0.78rem;color:var(--text-muted);">
+            搜索结果: <strong id="match-count">0</strong> 台
+            <button onclick="clearSearch()"
+                    style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:0.78rem;margin-left:0.5rem;">
+                清除搜索
+            </button>
+        </span>
+    </div>
+
+    <!-- ── 设备表格 ──────────────────────────────────────── -->
     {% if systems %}
-    <div class="table-wrap">
-        <table class="table-custom">
+    <div class="table-wrap" id="table-wrap">
+        <table class="table-custom" id="systemsTable">
             <thead>
                 <tr>
+                    <th style="width:40px;">
+                        <input type="checkbox" id="checkAll"
+                               onchange="toggleAll(this)"
+                               style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+                    </th>
                     <th style="width:50px;">#</th>
                     <th>名称</th>
                     <th>Profile</th>
@@ -29,7 +103,17 @@
             </thead>
             <tbody>
                 {% for s in systems %}
-                <tr>
+                <tr class="system-row"
+                    data-name="{{ s.name|lower }}"
+                    data-profile="{{ s.profile|lower }}"
+                    data-ip="{{ s.net_info.ip|lower }}"
+                    data-mac="{{ s.net_info.mac|lower }}">
+                    <td>
+                        <input type="checkbox" class="row-check"
+                               value="{{ s.name }}"
+                               onchange="updateSelection()"
+                               style="width:15px;height:15px;accent-color:var(--accent);cursor:pointer;">
+                    </td>
                     <td style="color:var(--text-muted);">{{ loop.index }}</td>
                     <td>
                         <span style="color:var(--text-bright);font-weight:500;">
@@ -60,35 +144,24 @@
                     </td>
                     <td>
                         <div class="action-group">
-                            <!-- 重装 -->
                             <a href="/system/{{ s.name }}/reinstall"
-                               class="btn-sm-action accent"
-                               title="重装">
+                               class="btn-sm-action accent" title="重装">
                                 <i class="bi bi-arrow-repeat"></i> 重装
                             </a>
-
-                            <!-- 预览 -->
                             <a href="/system/{{ s.name }}/preview"
-                               class="btn-sm-action info"
-                               title="预览 Kickstart">
-                                <i class="bi bi-eye"></i> 预览
+                               class="btn-sm-action info" title="预览 Kickstart">
+                                <i class="bi bi-eye"></i>
                             </a>
-
-                            <!-- 取消重装 -->
                             <form method="POST" action="/system/{{ s.name }}/cancel"
                                   style="display:inline;">
-                                <button type="submit" class="btn-sm-action"
-                                        title="取消重装标记">
-                                    <i class="bi bi-x-circle"></i> 取消
+                                <button type="submit" class="btn-sm-action" title="取消重装标记">
+                                    <i class="bi bi-x-circle"></i>
                                 </button>
                             </form>
-
-                            <!-- 删除 -->
                             <form method="POST" action="/system/{{ s.name }}/delete"
                                   style="display:inline;"
-                                  onsubmit="return confirm('确定要删除系统「{{ s.name }}」吗？此操作不可逆。');">
-                                <button type="submit" class="btn-danger-outline"
-                                        title="删除">
+                                  onsubmit="return confirm('确定要删除系统「{{ s.name }}」吗？');">
+                                <button type="submit" class="btn-danger-outline" title="删除">
                                     <i class="bi bi-trash3"></i>
                                 </button>
                             </form>
@@ -98,6 +171,12 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+
+    <div id="empty-search" style="display:none;" class="empty-state">
+        <i class="bi bi-search"></i>
+        <h3>没有匹配的设备</h3>
+        <p style="margin-top:0.5rem;">尝试修改搜索关键词</p>
     </div>
 
     {% else %}
@@ -110,4 +189,284 @@
     </div>
     {% endif %}
 </div>
+
+<!-- ── 批量重装弹窗 ──────────────────────────────────────── -->
+<div id="batchModal" style="display:none;position:fixed;inset:0;z-index:1000;">
+    <div onclick="closeBatchModal()"
+         style="position:absolute;inset:0;background:rgba(0,0,0,0.7);"></div>
+
+    <div style="position:relative;max-width:600px;margin:5vh auto 0;background:var(--card);
+                border:1px solid var(--border);border-radius:12px;padding:2rem;z-index:1001;
+                max-height:85vh;overflow-y:auto;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;">
+            <h2 style="font-size:1.2rem;">
+                <i class="bi bi-arrow-repeat" style="color:var(--warning);"></i>
+                批量重装
+            </h2>
+            <button onclick="closeBatchModal()"
+                    style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:1.3rem;">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+
+        <div style="margin-bottom:1.5rem;">
+            <label class="form-label">选中的设备（<span id="modal-count">0</span> 台）</label>
+            <div id="modal-device-list"
+                 style="background:var(--surface);border:1px solid var(--border);border-radius:6px;
+                        padding:0.8rem;max-height:150px;overflow-y:auto;font-size:0.78rem;">
+            </div>
+        </div>
+
+        <form id="batchForm" method="POST" action="/system/batch-reinstall">
+            <input type="hidden" name="selected_hosts" id="selectedHosts" value="">
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div>
+                    <label class="form-label">Profile（留空保持原值）</label>
+                    <select name="profile" class="form-select" id="batch-profile">
+                        <option value="">保持原值</option>
+                        {% for p in profile_list %}
+                        <option value="{{ p }}">{{ p }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label">IP 起始地址（留空保持原值）</label>
+                    <input type="text" name="ip_start" class="form-control"
+                           id="batch-ip-start"
+                           placeholder="192.168.20.210">
+                    <div class="form-text">每台设备 IP 自动 +1</div>
+                </div>
+                <div>
+                    <label class="form-label">子网掩码</label>
+                    <input type="text" name="netmask" class="form-control"
+                           value="255.255.255.192" placeholder="255.255.255.192">
+                </div>
+                <div>
+                    <label class="form-label">默认网关</label>
+                    <input type="text" name="gateway" class="form-control"
+                           placeholder="192.168.20.1">
+                </div>
+            </div>
+
+            <div style="margin-top:1rem;">
+                <label class="form-label">DNS（多个用逗号分隔）</label>
+                <input type="text" name="dns" class="form-control"
+                       placeholder="114.114.114.114, 8.8.8.8">
+            </div>
+
+            <hr class="section-divider">
+
+            <div class="alert-custom alert-info-custom" style="margin-bottom:1rem;">
+                <i class="bi bi-info-circle-fill"></i>
+                提交后将开启 PXE 并执行 sync，需配合 IPMI 重启设备。
+            </div>
+
+            <div style="display:flex;gap:0.8rem;justify-content:flex-end;">
+                <button type="button" onclick="closeBatchModal()" class="btn-ghost">取消</button>
+                <button type="submit" class="btn-accent"
+                        style="background:var(--warning);"
+                        onclick="return confirmBatch();">
+                    <i class="bi bi-arrow-repeat"></i> 确认批量重装
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    /* ── 搜索过滤 ─────────────────────────────────────── */
+
+    function filterTable() {
+        const input = document.getElementById('searchInput');
+        const raw = input.value;
+
+        const keywords = raw.split('\n')
+            .map(line => line.trim().toLowerCase())
+            .filter(line => line.length > 0);
+
+        const rows = document.querySelectorAll('.system-row');
+        const btnClear = document.getElementById('btn-clear');
+        const searchInfo = document.getElementById('search-info');
+        const matchCount = document.getElementById('match-count');
+        const emptySearch = document.getElementById('empty-search');
+        const tableWrap = document.getElementById('table-wrap');
+
+        btnClear.style.display = raw.trim() ? 'block' : 'none';
+
+        if (keywords.length === 0) {
+            rows.forEach(row => row.style.display = '');
+            searchInfo.style.display = 'none';
+            emptySearch.style.display = 'none';
+            if (tableWrap) tableWrap.style.display = '';
+            updateSelection();
+            return;
+        }
+
+        let visible = 0;
+        rows.forEach(row => {
+            const name    = row.dataset.name    || '';
+            const profile = row.dataset.profile || '';
+            const ip      = row.dataset.ip      || '';
+            const mac     = row.dataset.mac     || '';
+            const combined = name + ' ' + profile + ' ' + ip + ' ' + mac;
+
+            const match = keywords.every(kw => combined.includes(kw));
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        matchCount.textContent = visible;
+        searchInfo.style.display = 'block';
+
+        if (visible === 0) {
+            emptySearch.style.display = '';
+            if (tableWrap) tableWrap.style.display = 'none';
+        } else {
+            emptySearch.style.display = 'none';
+            if (tableWrap) tableWrap.style.display = '';
+        }
+
+        updateSelection();
+    }
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        filterTable();
+        document.getElementById('searchInput').focus();
+    }
+
+    /* ── 复选框操作 ───────────────────────────────────── */
+
+    function getVisibleRows() {
+        return Array.from(document.querySelectorAll('.system-row'))
+            .filter(row => row.style.display !== 'none');
+    }
+
+    function toggleAll(source) {
+        getVisibleRows().forEach(row => {
+            const cb = row.querySelector('.row-check');
+            if (cb) cb.checked = source.checked;
+        });
+        updateSelection();
+    }
+
+    function selectAll() {
+        getVisibleRows().forEach(row => {
+            const cb = row.querySelector('.row-check');
+            if (cb) cb.checked = true;
+        });
+        document.getElementById('checkAll').checked = true;
+        updateSelection();
+    }
+
+    function deselectAll() {
+        document.querySelectorAll('.row-check').forEach(cb => cb.checked = false);
+        document.getElementById('checkAll').checked = false;
+        updateSelection();
+    }
+
+    function invertSelection() {
+        getVisibleRows().forEach(row => {
+            const cb = row.querySelector('.row-check');
+            if (cb) cb.checked = !cb.checked;
+        });
+        updateSelection();
+    }
+
+    function getSelectedHosts() {
+        return Array.from(document.querySelectorAll('.row-check:checked'))
+            .map(cb => cb.value);
+    }
+
+    function updateSelection() {
+        const selected = getSelectedHosts();
+        const count = selected.length;
+
+        document.getElementById('selected-count').textContent = '已选 ' + count + ' 台';
+        document.getElementById('batch-count').textContent = count;
+
+        const batchBar = document.getElementById('batch-bar');
+        batchBar.style.display = count > 0 ? 'flex' : 'none';
+    }
+
+    /* ── 批量重装弹窗 ─────────────────────────────────── */
+
+    function openBatchModal(action) {
+        const selected = getSelectedHosts();
+        if (selected.length === 0) {
+            alert('请先勾选要操作的设备');
+            return;
+        }
+
+        document.getElementById('modal-count').textContent = selected.length;
+        document.getElementById('selectedHosts').value = selected.join(',');
+
+        const listEl = document.getElementById('modal-device-list');
+        listEl.innerHTML = selected.map(h =>
+            '<div style="padding:0.2rem 0;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.4rem;">' +
+            '<i class="bi bi-hdd" style="color:var(--accent);font-size:0.75rem;"></i>' +
+            '<span style="color:var(--text-bright);">' + h + '</span>' +
+            '</div>'
+        ).join('');
+
+        document.getElementById('batchModal').style.display = 'block';
+    }
+
+    function closeBatchModal() {
+        document.getElementById('batchModal').style.display = 'none';
+    }
+
+    function confirmBatch() {
+        const hosts = getSelectedHosts();
+        const ipStart = document.getElementById('batch-ip-start').value.trim();
+
+        let msg = '确认对以下 ' + hosts.length + ' 台设备执行批量重装？\n\n';
+        hosts.forEach((h, i) => {
+            msg += '  ' + (i + 1) + '. ' + h;
+            if (ipStart) {
+                msg += '  →  ' + incrementIP(ipStart, i);
+            }
+            msg += '\n';
+        });
+
+        return confirm(msg);
+    }
+
+    /* ── IP 自动递增 ──────────────────────────────────── */
+
+    function incrementIP(ip, offset) {
+        const parts = ip.split('.').map(Number);
+        parts[3] += offset;
+        while (parts[3] > 255) { parts[3] -= 256; parts[2]++; }
+        while (parts[2] > 255) { parts[2] -= 256; parts[1]++; }
+        return parts.join('.');
+    }
+
+    /* ── 批量取消重装标记 ──────────────────────────────── */
+
+    function batchCancel() {
+        const selected = getSelectedHosts();
+        if (selected.length === 0) {
+            alert('请先勾选设备');
+            return;
+        }
+        if (!confirm('确认取消以下 ' + selected.length + ' 台设备的重装标记？\n\n' + selected.join('\n'))) {
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/system/batch-cancel';
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'selected_hosts';
+        input.value = selected.join(',');
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+</script>
 {% endblock %}
+

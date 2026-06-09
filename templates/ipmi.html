@@ -1,0 +1,257 @@
+{% extends "base.html" %}
+{% block title %}IPMI 管理 — Cobbler Web{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-power" style="color:var(--danger);"></i>
+            IPMI 管理
+        </h1>
+    </div>
+
+    <!-- 操作说明 -->
+    <div class="card-custom" style="margin-bottom:2rem;">
+        <h3 style="font-size:1rem;margin-bottom:1rem;">
+            <i class="bi bi-info-circle" style="color:var(--info);"></i>
+            支持的操作
+        </h3>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.8rem;font-size:0.82rem;">
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-activity" style="color:var(--info);"></i>
+                <span>查看电源状态</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-arrow-repeat" style="color:var(--success);"></i>
+                <span>重启设备</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-power" style="color:var(--success);"></i>
+                <span>开机 / 关机</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-hdd-network" style="color:var(--accent);"></i>
+                <span>设置 PXE 启动</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-disc" style="color:var(--accent);"></i>
+                <span>设置光驱启动</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem;">
+                <i class="bi bi-gear-wide-connected" style="color:var(--warning);"></i>
+                <span>设置进入 BIOS</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 表单 -->
+    <div class="card-custom" style="max-width:720px;border-left-color:var(--danger);">
+        <form method="POST" action="/ipmi">
+
+            <!-- 统一凭据 -->
+            <h3 style="font-size:0.95rem;margin-bottom:1rem;color:var(--text-bright);">
+                统一凭据
+                <span style="font-size:0.72rem;color:var(--text-muted);font-weight:400;margin-left:0.5rem;">
+                    应用到所有未单独指定凭据的设备
+                </span>
+            </h3>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;">
+                <div>
+                    <label class="form-label">BMC 用户名</label>
+                    <input type="text" name="default_user" class="form-control"
+                           value="root" placeholder="root">
+                </div>
+                <div>
+                    <label class="form-label">BMC 密码</label>
+                    <input type="password" name="default_password" class="form-control"
+                           placeholder="请输入密码" required>
+                </div>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- 设备列表 -->
+            <h3 style="font-size:0.95rem;margin-bottom:0.5rem;color:var(--text-bright);">
+                设备列表
+            </h3>
+            <div class="form-text" style="margin-bottom:0.8rem;">
+                每行一台设备。格式:
+                <code style="color:var(--accent);">BMC_IP</code>
+                或
+                <code style="color:var(--accent);">BMC_IP 用户名 密码</code>
+                （指定单独凭据）
+            </div>
+
+            <textarea name="device_list" id="deviceList" class="form-control"
+                      rows="10"
+                      style="font-family:var(--font-body);font-size:0.82rem;line-height:1.8;"
+                      placeholder="10.16.107.101&#10;10.16.107.102&#10;10.16.107.103 admin admin123&#10;10.16.107.104"
+                      required></textarea>
+
+            <div style="margin-top:0.5rem;display:flex;gap:1rem;font-size:0.72rem;color:var(--text-muted);">
+                <span id="lineCount">0 台设备</span>
+                <button type="button" onclick="clearList()"
+                        style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.72rem;">
+                    清空列表
+                </button>
+            </div>
+
+            <hr class="section-divider">
+
+            <!-- 操作按钮 -->
+            <h3 style="font-size:0.95rem;margin-bottom:1rem;color:var(--text-bright);">
+                选择操作
+            </h3>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0.8rem;">
+
+                <!-- 电源状态 -->
+                <button type="submit" name="action" value="status"
+                        class="btn-ghost" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;"
+                        onclick="return confirmAction('查看电源状态');">
+                    <i class="bi bi-activity" style="color:var(--info);"></i>
+                    电源状态
+                </button>
+
+                <!-- 重启 -->
+                <button type="submit" name="action" value="reboot"
+                        class="btn-accent" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;background:var(--danger);"
+                        onclick="return confirmAction('重启');">
+                    <i class="bi bi-arrow-repeat"></i>
+                    重启
+                </button>
+
+                <!-- 开机 -->
+                <button type="submit" name="action" value="poweron"
+                        class="btn-ghost" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;color:var(--success);border-color:rgba(52,199,89,0.3);"
+                        onclick="return confirmAction('开机');">
+                    <i class="bi bi-power"></i>
+                    开机
+                </button>
+
+                <!-- 关机 -->
+                <button type="submit" name="action" value="poweroff"
+                        class="btn-ghost" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;color:var(--danger);border-color:rgba(240,64,64,0.3);"
+                        onclick="return confirmAction('关机');">
+                    <i class="bi bi-power"></i>
+                    关机
+                </button>
+
+                <!-- PXE 启动 -->
+                <button type="submit" name="action" value="pxe"
+                        class="btn-ghost" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;color:var(--accent);border-color:rgba(232,152,48,0.3);"
+                        onclick="return confirmAction('设置 PXE 启动');">
+                    <i class="bi bi-hdd-network"></i>
+                    PXE 启动
+                </button>
+
+                <!-- 光驱启动 -->
+                <button type="submit" name="action" value="cdrom"
+                        class="btn-ghost" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;color:var(--warning);border-color:rgba(232,152,48,0.3);"
+                        onclick="return confirmAction('设置光驱启动');">
+                    <i class="bi bi-disc"></i>
+                    光驱启动
+                </button>
+
+                <!-- 进入 BIOS -->
+                <button type="submit" name="action" value="bios"
+                        class="btn-ghost" style="display:flex;align-items:center;gap:0.5rem;justify-content:center;color:var(--info);border-color:rgba(58,142,246,0.3);"
+                        onclick="return confirmAction('设置进入 BIOS');">
+                    <i class="bi bi-gear-wide-connected"></i>
+                    进入 BIOS
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- 执行结果 -->
+    {% if results %}
+    <hr class="section-divider">
+    <h2 style="font-size:1.2rem;margin-bottom:1rem;">
+        <i class="bi bi-list-check" style="color:var(--accent);"></i>
+        执行结果
+    </h2>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-bottom:1.5rem;">
+        <div class="card-custom" style="border-left-color:var(--success);">
+            <div class="card-value" style="color:var(--success);">
+                {{ results|selectattr('status','equalto','success')|list|length }}
+            </div>
+            <div class="card-label">成功</div>
+        </div>
+        <div class="card-custom" style="border-left-color:var(--danger);">
+            <div class="card-value" style="color:var(--danger);">
+                {{ results|selectattr('status','equalto','error')|list|length }}
+            </div>
+            <div class="card-label">失败</div>
+        </div>
+        <div class="card-custom" style="border-left-color:var(--text-muted);">
+            <div class="card-value">{{ results|length }}</div>
+            <div class="card-label">总计</div>
+        </div>
+    </div>
+
+    <div class="table-wrap">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>BMC IP</th>
+                    <th>状态</th>
+                    <th>结果</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                    <td><code style="color:var(--text-bright);">{{ r.ip }}</code></td>
+                    <td>
+                        {% if r.status == 'success' %}
+                            <span class="badge-status badge-on" style="color:var(--success);border-color:rgba(52,199,89,0.3);background:rgba(52,199,89,0.1);">
+                                <i class="bi bi-check-circle-fill"></i> 成功
+                            </span>
+                        {% else %}
+                            <span class="badge-status" style="color:var(--danger);border-color:rgba(240,64,64,0.3);background:rgba(240,64,64,0.1);">
+                                <i class="bi bi-x-circle-fill"></i> 失败
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:0.78rem;">{{ r.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    const textarea = document.getElementById('deviceList');
+    const lineCount = document.getElementById('lineCount');
+
+    function updateLineCount() {
+        const lines = textarea.value.split('\n').filter(l => l.trim());
+        lineCount.textContent = lines.length + ' 台设备';
+    }
+
+    textarea.addEventListener('input', updateLineCount);
+    updateLineCount();
+
+    function clearList() {
+        textarea.value = '';
+        updateLineCount();
+    }
+
+    function confirmAction(actionName) {
+        const lines = textarea.value.split('\n').filter(l => l.trim());
+        if (lines.length === 0) {
+            alert('请至少输入一台设备');
+            return false;
+        }
+        return confirm('确认对 ' + lines.length + ' 台设备执行「' + actionName + '」操作？');
+    }
+</script>
+{% endblock %}
+

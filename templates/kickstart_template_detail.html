@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ profile_name }} 模板 — Cobbler Web{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-file-earmark-code" style="color:var(--accent);"></i>
+            {{ profile_name }}
+        </h1>
+        <a href="/kickstart-templates" class="btn-ghost">
+            <i class="bi bi-arrow-left"></i> 返回列表
+        </a>
+    </div>
+
+    <div class="card-custom" style="margin-bottom:1.5rem;">
+        <div class="config-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+            <div class="config-item">
+                <div class="config-label">Profile</div>
+                <div class="config-value">{{ profile_name }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">发行版</div>
+                <div class="config-value">{{ profile_data.get('distro', '—') }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">架构</div>
+                <div class="config-value">{{ profile_data.get('arch', '—') }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">模板路径</div>
+                <div class="config-value" style="font-size:0.8rem;">{{ kickstart_path or '—' }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">字符数</div>
+                <div class="config-value">{{ kickstart_content|length }}</div>
+            </div>
+            <div class="config-item">
+                <div class="config-label">行数</div>
+                <div class="config-value">{{ kickstart_content.splitlines()|length }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:0.5rem;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.75rem;font-weight:500;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;">
+            KS 内容
+        </span>
+        <button onclick="copyContent()" id="btnCopy" class="btn-sm-action" style="font-size:0.75rem;">
+            <i class="bi bi-clipboard"></i> 复制内容
+        </button>
+    </div>
+    <div class="code-block" id="ksContent">{{ kickstart_content }}</div>
+</div>
+
+<script>
+    function copyContent() {
+        const content = document.getElementById('ksContent').textContent;
+        const btn = document.getElementById('btnCopy');
+        const original = btn.innerHTML;
+
+        const textArea = document.createElement('textarea');
+        textArea.value = content;
+        textArea.style.position = 'fixed';
+        textArea.style.left = '-9999px';
+        textArea.style.top = '-9999px';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+
+        try {
+            document.execCommand('copy');
+            btn.innerHTML = '<i class="bi bi-check"></i> 已复制';
+            btn.style.color = 'var(--success)';
+            btn.style.borderColor = 'rgba(22,163,74,0.4)';
+        } catch(e) {
+            btn.innerHTML = '<i class="bi bi-x-lg"></i> 复制失败';
+            btn.style.color = 'var(--danger)';
+            btn.style.borderColor = 'rgba(220,38,38,0.4)';
+        }
+
+        document.body.removeChild(textArea);
+
+        setTimeout(() => {
+            btn.innerHTML = original;
+            btn.style.color = '';
+            btn.style.borderColor = '';
+        }, 1500);
+    }
+</script>
+{% endblock %}
+

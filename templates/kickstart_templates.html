@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}Kickstart 模板 — Cobbler Web{% endblock %}
+{% block content %}
+<div class="fade-in">
+    <div class="page-header">
+        <h1>
+            <i class="bi bi-file-earmark-code" style="color:var(--accent);"></i>
+            Kickstart 模板
+            <span class="count-badge">{{ templates|length }} 个</span>
+        </h1>
+    </div>
+    {% if templates %}
+    <div class="table-wrap">
+        <table class="table-custom">
+            <thead>
+                <tr>
+                    <th style="width:50px;">#</th>
+                    <th>Profile 名称</th>
+                    <th>发行版</th>
+                    <th>Kickstart 路径</th>
+                    <th style="width:120px;">操作</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in templates %}
+                <tr>
+                    <td style="color:var(--text-muted);">{{ loop.index }}</td>
+                    <td><span style="color:var(--text-bright);font-weight:500;">{{ t.profile }}</span></td>
+                    <td>{{ t.distro }}</td>
+                    <td>
+                        {% if t.kickstart_path %}
+                            <code style="font-size:0.75rem;color:var(--text-muted);">{{ t.kickstart_path }}</code>
+                        {% else %}
+                            <span style="color:var(--text-muted);">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if t.kickstart_path %}
+                        <a href="/kickstart-templates/{{ t.profile }}" class="btn-sm-action info">
+                            <i class="bi bi-eye"></i> 查看内容
+                        </a>
+                        {% else %}
+                        <span style="color:var(--text-muted);font-size:0.75rem;">无模板</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+        <i class="bi bi-file-earmark-code"></i>
+        <h3>暂无 Kickstart 模板</h3>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+

@@ -1,52 +1,32 @@
 {% extends "base.html" %}
 {% block title %}仪表盘 — Cobbler Web{% endblock %}
-
 {% block content %}
 <div class="fade-in">
     <h1 style="margin-bottom:2rem;">仪表盘</h1>
-
-    <!-- 统计卡片 -->
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.2rem;margin-bottom:2.5rem;">
-
-        <!-- Cobbler 连接状态 -->
         <div class="card-custom card-status fade-in fade-in-d1">
-            <div class="card-icon {% if connected %}success{% else %}error{% endif %}">
-                <i class="bi {% if connected %}bi-ethernet{% else %}bi-ethernet{% endif %}"></i>
-            </div>
+            <div class="card-icon {% if connected %}success{% else %}error{% endif %}"><i class="bi bi-ethernet"></i></div>
             <div style="display:flex;align-items:center;gap:0.6rem;">
                 <span class="status-dot {% if connected %}online{% else %}offline{% endif %}"></span>
-                <span style="font-size:1rem;color:var(--text-bright);font-weight:600;">
-                    {% if connected %}Cobbler 在线{% else %}Cobbler 离线{% endif %}
-                </span>
+                <span style="font-size:1rem;color:var(--text-bright);font-weight:600;">{% if connected %}Cobbler 在线{% else %}Cobbler 离线{% endif %}</span>
             </div>
-            <div class="card-label" style="margin-top:0.6rem;">{{ connection_message }}</div>
+            <div class="card-label" style="margin-top:0.6rem;">{% if connected %}连接成功{% else %}{{ connection_message }}{% endif %}</div>
         </div>
-
-        <!-- System 数量 -->
         <div class="card-custom fade-in fade-in-d2">
             <div class="card-icon"><i class="bi bi-hdd-stack"></i></div>
             <div class="card-value">{{ systems_count }}</div>
             <div class="card-label">Systems</div>
         </div>
-
-        <!-- Profile 数量 -->
         <div class="card-custom fade-in fade-in-d3">
             <div class="card-icon"><i class="bi bi-collection"></i></div>
             <div class="card-value">{{ profiles_count }}</div>
             <div class="card-label">Profiles</div>
         </div>
-
-        <!-- 快捷操作 -->
         <div class="card-custom fade-in fade-in-d4">
             <div class="card-icon"><i class="bi bi-lightning-charge"></i></div>
             <div class="card-label" style="margin-bottom:1rem;">快捷操作</div>
-            <a href="/system/add" class="btn-accent" style="display:inline-block;margin-bottom:0.5rem;">
-                <i class="bi bi-plus-circle"></i> 添加 System
-            </a>
-            <br>
-            <a href="/systems" class="btn-ghost" style="display:inline-block;">
-                <i class="bi bi-list-ul"></i> 查看所有 System
-            </a>
+            <a href="/system/add" class="btn-accent" style="display:inline-block;margin-bottom:0.5rem;"><i class="bi bi-plus-circle"></i> 添加 System</a><br>
+            <a href="/systems" class="btn-ghost" style="display:inline-block;"><i class="bi bi-list-ul"></i> 查看所有 System</a>
         </div>
     </div>
 </div>

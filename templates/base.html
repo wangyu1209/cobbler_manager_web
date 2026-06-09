@@ -6,30 +6,34 @@
     <title>{% block title %}Cobbler Web{% endblock %}</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
     <style>
         /* ── 全局变量 ─────────────────────────────────────── */
         :root {
-            --bg-deep:    #060a10;
-            --bg:         #0b0f16;
-            --surface:    #111822;
-            --card:       #161d2a;
-            --border:     #1e2a3a;
-            --border-hover: #2a3a50;
-            --accent:     #e89830;
-            --accent-hover: #f0a840;
-            --accent-glow: rgba(232, 152, 48, 0.15);
-            --text:       #b8c0cc;
-            --text-bright:#edf0f5;
-            --text-muted: #556070;
-            --success:    #34c759;
-            --danger:     #f04040;
-            --info:       #3a8ef6;
-            --warning:    #e89830;
-            --font-heading: 'Syne', sans-serif;
-            --font-body:    'DM Mono', 'Courier New', monospace;
+            --bg:            #f4f6f9;
+            --surface:       #eef1f6;
+            --card:          #ffffff;
+            --border:        #dde2ea;
+            --border-hover:  #c5ccd6;
+            --accent:        #2563eb;
+            --accent-hover:  #1d4ed8;
+            --accent-light:  #dbeafe;
+            --accent-glow:   rgba(37, 99, 235, 0.12);
+            --text:          #475569;
+            --text-bright:   #0f172a;
+            --text-muted:    #94a3b8;
+            --success:       #16a34a;
+            --success-light: #dcfce7;
+            --danger:        #dc2626;
+            --danger-light:  #fee2e2;
+            --info:          #2563eb;
+            --info-light:    #dbeafe;
+            --warning:       #ea580c;
+            --warning-light: #ffedd5;
+            --font-heading:  'DM Sans', 'Noto Sans SC', sans-serif;
+            --font-body:     'DM Sans', 'Noto Sans SC', sans-serif;
         }
 
         /* ── 重置与基础 ───────────────────────────────────── */
@@ -41,18 +45,11 @@
             font-family: var(--font-body);
             font-weight: 400;
             font-size: 0.875rem;
-            line-height: 1.6;
+            line-height: 1.7;
             background: var(--bg);
             color: var(--text);
             min-height: 100vh;
-        }
-
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h1v1H0z' fill='%23ffffff' fill-opacity='0.015'/%3E%3C/svg%3E");
-            pointer-events: none;
-            z-index: 0;
+            -webkit-font-smoothing: antialiased;
         }
 
         /* ── 排版 ────────────────────────────────────────── */
@@ -60,7 +57,7 @@
             font-family: var(--font-heading);
             font-weight: 700;
             color: var(--text-bright);
-            line-height: 1.2;
+            line-height: 1.3;
         }
 
         a {
@@ -72,24 +69,26 @@
 
         code, pre {
             font-family: var(--font-body);
+            font-size: 0.84rem;
         }
 
         /* ── 导航栏 ──────────────────────────────────────── */
         .navbar {
-            background: var(--surface);
+            background: #ffffff;
             border-bottom: 1px solid var(--border);
-            padding: 0.75rem 0;
+            padding: 0.7rem 0;
             position: sticky;
             top: 0;
             z-index: 100;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.04);
         }
 
         .navbar-brand {
             font-family: var(--font-heading);
-            font-weight: 800;
-            font-size: 1.2rem;
+            font-weight: 700;
+            font-size: 1.15rem;
             color: var(--text-bright) !important;
-            letter-spacing: -0.02em;
+            letter-spacing: -0.01em;
             display: flex;
             align-items: center;
             gap: 0.6rem;
@@ -100,20 +99,20 @@
             background: var(--accent);
             border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 8px var(--accent-glow);
         }
 
         .nav-link {
             font-family: var(--font-body);
-            font-size: 0.8rem;
+            font-size: 0.82rem;
+            font-weight: 500;
             color: var(--text-muted) !important;
-            padding: 0.4rem 0.9rem !important;
+            padding: 0.45rem 0.85rem !important;
             border-radius: 6px;
             transition: all 0.2s ease;
         }
         .nav-link:hover {
             color: var(--text-bright) !important;
-            background: rgba(255,255,255,0.04);
+            background: var(--bg);
         }
         .nav-link.active {
             color: var(--accent) !important;
@@ -126,7 +125,6 @@
             margin: 0 auto;
             padding: 2rem 1.5rem;
             position: relative;
-            z-index: 1;
         }
 
         /* ── 页面标题 ────────────────────────────────────── */
@@ -140,14 +138,15 @@
         }
 
         .page-header h1 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            letter-spacing: -0.03em;
+            font-size: 1.7rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
         }
 
         .page-header .count-badge {
             font-family: var(--font-body);
-            font-size: 0.8rem;
+            font-size: 0.78rem;
+            font-weight: 500;
             color: var(--text-muted);
             background: var(--surface);
             border: 1px solid var(--border);
@@ -161,33 +160,34 @@
             background: var(--card);
             border: 1px solid var(--border);
             border-left: 3px solid var(--accent);
-            border-radius: 8px;
+            border-radius: 10px;
             padding: 1.5rem;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
         .card-custom:hover {
             border-color: var(--border-hover);
-            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06);
         }
 
         .card-custom .card-value {
             font-family: var(--font-heading);
-            font-size: 2.4rem;
-            font-weight: 800;
+            font-size: 2.2rem;
+            font-weight: 700;
             color: var(--text-bright);
             line-height: 1;
         }
 
         .card-custom .card-label {
             font-size: 0.75rem;
+            font-weight: 500;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
             margin-top: 0.4rem;
         }
 
         .card-custom .card-icon {
-            font-size: 1.6rem;
+            font-size: 1.5rem;
             color: var(--accent);
             margin-bottom: 0.8rem;
         }
@@ -205,9 +205,9 @@
         .table-custom thead th {
             font-family: var(--font-heading);
             font-weight: 600;
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             text-transform: uppercase;
-            letter-spacing: 0.1em;
+            letter-spacing: 0.08em;
             color: var(--text-muted);
             background: var(--surface);
             border-bottom: 1px solid var(--border);
@@ -221,14 +221,14 @@
             padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--border);
             vertical-align: middle;
-            font-size: 0.82rem;
+            font-size: 0.84rem;
         }
 
         .table-custom tbody tr {
             transition: background 0.15s ease;
         }
         .table-custom tbody tr:hover {
-            background: rgba(255,255,255,0.02);
+            background: rgba(37, 99, 235, 0.03);
         }
         .table-custom tbody tr:last-child td {
             border-bottom: none;
@@ -239,6 +239,7 @@
             border: 1px solid var(--border);
             border-radius: 10px;
             overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
         /* ── 徽章 ────────────────────────────────────────── */
@@ -254,9 +255,9 @@
         }
 
         .badge-on {
-            background: rgba(52, 199, 89, 0.12);
+            background: var(--success-light);
             color: var(--success);
-            border: 1px solid rgba(52, 199, 89, 0.25);
+            border: 1px solid rgba(22,163,74,0.2);
         }
         .badge-on::before {
             content: '';
@@ -267,7 +268,7 @@
         }
 
         .badge-off {
-            background: rgba(255,255,255,0.04);
+            background: var(--surface);
             color: var(--text-muted);
             border: 1px solid var(--border);
         }
@@ -286,21 +287,21 @@
         /* ── 按钮 ────────────────────────────────────────── */
         .btn-accent {
             background: var(--accent);
-            color: #0a0a0a;
+            color: #ffffff;
             border: none;
             font-family: var(--font-body);
-            font-weight: 500;
+            font-weight: 600;
             font-size: 0.82rem;
             padding: 0.55rem 1.2rem;
-            border-radius: 6px;
+            border-radius: 7px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         .btn-accent:hover {
             background: var(--accent-hover);
-            color: #0a0a0a;
+            color: #ffffff;
             transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(232,152,48,0.25);
+            box-shadow: 0 4px 14px rgba(37, 99, 235, 0.3);
         }
 
         .btn-ghost {
@@ -311,30 +312,30 @@
             font-weight: 500;
             font-size: 0.82rem;
             padding: 0.55rem 1.2rem;
-            border-radius: 6px;
+            border-radius: 7px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         .btn-ghost:hover {
-            border-color: var(--border-hover);
-            background: rgba(255,255,255,0.03);
-            color: var(--text-bright);
+            border-color: var(--accent);
+            background: var(--accent-glow);
+            color: var(--accent);
         }
 
         .btn-danger-outline {
             background: transparent;
             color: var(--danger);
-            border: 1px solid rgba(240,64,64,0.3);
+            border: 1px solid var(--danger-light);
             font-family: var(--font-body);
             font-weight: 500;
             font-size: 0.78rem;
             padding: 0.35rem 0.8rem;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
         }
         .btn-danger-outline:hover {
-            background: rgba(240,64,64,0.1);
+            background: var(--danger-light);
             border-color: var(--danger);
         }
 
@@ -344,8 +345,9 @@
             border: 1px solid var(--border);
             font-family: var(--font-body);
             font-size: 0.75rem;
+            font-weight: 500;
             padding: 0.3rem 0.7rem;
-            border-radius: 5px;
+            border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s ease;
             text-decoration: none;
@@ -356,25 +358,27 @@
         .btn-sm-action:hover {
             color: var(--text-bright);
             border-color: var(--border-hover);
-            background: rgba(255,255,255,0.03);
+            background: var(--surface);
         }
         .btn-sm-action.accent:hover {
             color: var(--accent);
-            border-color: rgba(232,152,48,0.3);
+            border-color: var(--accent);
+            background: var(--accent-glow);
         }
         .btn-sm-action.info:hover {
             color: var(--info);
-            border-color: rgba(58,142,246,0.3);
+            border-color: var(--info);
+            background: var(--info-light);
         }
 
         /* ── 表单 ────────────────────────────────────────── */
         .form-label {
             font-family: var(--font-body);
             font-size: 0.78rem;
-            font-weight: 500;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
+            font-weight: 600;
+            color: var(--text);
+            text-transform: none;
+            letter-spacing: 0;
             margin-bottom: 0.4rem;
             display: block;
         }
@@ -382,16 +386,16 @@
         .form-control, .form-select {
             font-family: var(--font-body);
             font-size: 0.85rem;
-            background: var(--surface);
+            background: #ffffff;
             border: 1px solid var(--border);
             color: var(--text-bright);
             padding: 0.6rem 0.9rem;
-            border-radius: 6px;
+            border-radius: 7px;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
             width: 100%;
         }
         .form-control:focus, .form-select:focus {
-            background: var(--surface);
+            background: #ffffff;
             border-color: var(--accent);
             color: var(--text-bright);
             box-shadow: 0 0 0 3px var(--accent-glow);
@@ -399,7 +403,7 @@
         }
         .form-control::placeholder {
             color: var(--text-muted);
-            opacity: 0.6;
+            opacity: 0.7;
         }
 
         .form-text {
@@ -411,7 +415,8 @@
         /* ── 提示消息 ────────────────────────────────────── */
         .alert-custom {
             font-family: var(--font-body);
-            font-size: 0.82rem;
+            font-size: 0.84rem;
+            font-weight: 500;
             padding: 0.8rem 1.2rem;
             border-radius: 8px;
             border: 1px solid;
@@ -423,18 +428,18 @@
         }
 
         .alert-success-custom {
-            background: rgba(52,199,89,0.08);
-            border-color: rgba(52,199,89,0.2);
+            background: var(--success-light);
+            border-color: rgba(22,163,74,0.2);
             color: var(--success);
         }
         .alert-error-custom {
-            background: rgba(240,64,64,0.08);
-            border-color: rgba(240,64,64,0.2);
+            background: var(--danger-light);
+            border-color: rgba(220,38,38,0.2);
             color: var(--danger);
         }
         .alert-info-custom {
-            background: rgba(58,142,246,0.08);
-            border-color: rgba(58,142,246,0.2);
+            background: var(--info-light);
+            border-color: rgba(37,99,235,0.2);
             color: var(--info);
         }
 
@@ -445,14 +450,14 @@
 
         /* ── Kickstart 代码块 ────────────────────────────── */
         .code-block {
-            background: var(--bg-deep);
-            border: 1px solid var(--border);
-            border-radius: 8px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 10px;
             padding: 1.5rem;
-            font-family: var(--font-body);
+            font-family: 'DM Mono', var(--font-body);
             font-size: 0.8rem;
-            line-height: 1.7;
-            color: #a8d4a0;
+            line-height: 1.8;
+            color: #86efac;
             overflow-x: auto;
             max-height: 700px;
             overflow-y: auto;
@@ -468,11 +473,11 @@
         }
         .status-dot.online  {
             background: var(--success);
-            box-shadow: 0 0 8px rgba(52,199,89,0.4);
+            box-shadow: 0 0 8px rgba(22,163,74,0.4);
         }
         .status-dot.offline {
             background: var(--danger);
-            box-shadow: 0 0 8px rgba(240,64,64,0.4);
+            box-shadow: 0 0 8px rgba(220,38,38,0.4);
         }
 
         /* ── 分隔线 ──────────────────────────────────────── */
@@ -490,19 +495,21 @@
         }
 
         .config-item {
-            background: var(--surface);
+            background: var(--bg);
             border: 1px solid var(--border);
-            border-radius: 6px;
+            border-radius: 8px;
             padding: 0.8rem 1rem;
         }
         .config-item .config-label {
-            font-size: 0.68rem;
+            font-size: 0.7rem;
+            font-weight: 500;
             color: var(--text-muted);
             text-transform: uppercase;
-            letter-spacing: 0.08em;
+            letter-spacing: 0.06em;
         }
         .config-item .config-value {
             font-size: 0.9rem;
+            font-weight: 600;
             color: var(--text-bright);
             margin-top: 0.2rem;
         }
@@ -571,6 +578,14 @@
                     <a class="nav-link {% if request.endpoint == 'profiles' %}active{% endif %}"
                        href="/profiles">
                         <i class="bi bi-collection"></i> Profiles
+                    </a>
+                    <a class="nav-link {% if request.endpoint in ('kickstart_templates', 'kickstart_template_detail') %}active{% endif %}"
+                       href="/kickstart-templates">
+                        <i class="bi bi-file-earmark-code"></i> Kickstart 模板
+                    </a>
+                    <a class="nav-link {% if request.endpoint == 'ipmi' %}active{% endif %}"
+                       href="/ipmi">
+                        <i class="bi bi-power"></i> IPMI 管理
                     </a>
                     <a class="nav-link {% if request.endpoint == 'add_system' %}active{% endif %}"
                        href="/system/add">

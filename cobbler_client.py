@@ -6,7 +6,6 @@ import xmlrpc.client as xc
 
 
 class CobblerError(Exception):
-    """Cobbler 操作异常"""
     pass
 
 
@@ -18,8 +17,6 @@ class CobblerClient:
         self.password = password
         self._conn = None
         self._token = None
-
-    # ── 连接与认证 ──────────────────────────────────────────────
 
     def _get_conn(self):
         if self._conn is None:
@@ -36,39 +33,32 @@ class CobblerClient:
         return self._token
 
     def test_connection(self):
-        """测试 Cobbler 连接是否正常"""
         try:
             conn = self._get_conn()
-            distros = conn.get_distros()
-            return True, f"连接成功，共 {len(distros)} 个 distro"
+            conn.get_distros()
+            return True, "连接成功"
         except Exception as e:
             return False, f"连接失败: {e}"
 
-    # ── 查询操作（不需要认证）──────────────────────────────────
-
     def get_systems(self):
-        """获取所有 system 列表"""
         try:
             return self._get_conn().get_systems()
         except Exception as e:
             raise CobblerError(f"获取 system 列表失败: {e}")
 
     def get_profiles(self):
-        """获取所有 profile 列表"""
         try:
             return self._get_conn().get_profiles()
         except Exception as e:
             raise CobblerError(f"获取 profile 列表失败: {e}")
 
     def get_system(self, hostname):
-        """获取单个 system 详情"""
         try:
             return self._get_conn().get_system(hostname)
         except Exception as e:
             raise CobblerError(f"获取 system '{hostname}' 失败: {e}")
 
     def preview_kickstart(self, hostname):
-        """预览 system 的 kickstart 内容"""
         conn = self._get_conn()
         systems = conn.get_systems()
         if hostname not in [s.get("name") for s in systems]:
@@ -85,20 +75,26 @@ class CobblerClient:
         except xc.Fault as e:
             raise CobblerError(f"生成 kickstart 失败: {e}")
 
-    # ── 写入操作（需要认证）────────────────────────────────────
+    def get_kickstart_template(self, profile_name):
+        """通过 profile 名称生成 kickstart 内容"""
+        conn = self._get_conn()
+        try:
+            content = conn.generate_kickstart(profile_name)
+            if content:
+                return content
+        except Exception as e:
+            return f"# 生成 kickstart 失败: {e}\n# profile: {profile_name}"
+        return f"# 无法生成 kickstart: {profile_name}"
 
     def add_system(self, hostname, mac, ip, gateway, dns_list,
                    profile, netmask="255.255.255.0"):
-        """新增 system"""
         token = self._get_token()
         conn = self._get_conn()
 
-        # 检查 system 是否已存在
         systems = conn.get_systems()
         if hostname in [s.get("name") for s in systems]:
             raise CobblerError(f"system '{hostname}' 已存在")
 
-        # 检查 profile 是否存在
         profiles = conn.get_profiles()
         if profile not in [p.get("name") for p in profiles]:
             raise CobblerError(f"profile '{profile}' 不存在")
@@ -119,7 +115,6 @@ class CobblerClient:
         return f"系统 '{hostname}' 已添加并同步完成"
 
     def delete_system(self, hostname):
-        """删除 system"""
         token = self._get_token()
         conn = self._get_conn()
 
@@ -134,7 +129,6 @@ class CobblerClient:
     def reinstall_system(self, hostname, new_hostname=None, profile=None,
                          mac=None, ip=None, netmask=None,
                          gateway=None, dns_list=None):
-        """修改已有 system 属性并标记重装"""
         token = self._get_token()
         conn = self._get_conn()
 
@@ -144,7 +138,6 @@ class CobblerClient:
 
         handle = conn.get_system_handle(hostname, token)
 
-        # 按需修改各属性
         if profile is not None and profile != "":
             profiles_list = conn.get_profiles()
             if profile not in [p.get("name") for p in profiles_list]:
@@ -170,7 +163,6 @@ class CobblerClient:
         if dns_list is not None:
             conn.modify_system(handle, "name_servers", dns_list, token)
 
-        # 开启 PXE 引导
         conn.modify_system(handle, "netboot_enabled", 1, token)
         conn.save_system(handle, token)
         conn.sync(token)
@@ -178,7 +170,6 @@ class CobblerClient:
         return f"系统 '{hostname}' 已修改并标记为重装"
 
     def cancel_reinstall(self, hostname):
-        """取消重装标记"""
         token = self._get_token()
         conn = self._get_conn()
 
@@ -193,11 +184,8 @@ class CobblerClient:
 
         return f"系统 '{hostname}' 重装标记已取消"
 
-    # ── 辅助方法 ────────────────────────────────────────────────
-
     @staticmethod
     def extract_network(system_data):
-        """从 system 数据中提取网络信息"""
         interfaces = system_data.get("interfaces", {})
         intf_data = {}
         for name, data in interfaces.items():
@@ -214,3 +202,4 @@ class CobblerClient:
             "dns": ", ".join(system_data.get("name_servers", [])),
             "netboot_enabled": system_data.get("netboot_enabled", 0),
         }
+
