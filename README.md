@@ -102,11 +102,11 @@ http://<服务器IP>:5000
 
 首次访问会自动跳转到设置页面，填入 Cobbler API 连接信息：
 
-| 字段 | 示例 |
-|------|------|
+| 字段        | 示例                              |
+| ----------- | --------------------------------- |
 | Cobbler URL | `http://192.168.1.10/cobbler_api` |
-| 用户名 | `cobbler` |
-| 密码 | `your_password` |
+| 用户名      | `cobbler`                         |
+| 密码        | `your_password`                   |
 
 点击「保存并测试连接」验证配置。
 
@@ -144,24 +144,24 @@ curl http://localhost:5000/health
 
 在 Systems 页面勾选设备后，可执行：
 
-| 操作 | 说明 |
-|------|------|
-| 批量重装 | 支持修改 Profile、IP（自动递增）、子网掩码、网关、DNS，提交后开启 PXE 并执行 sync |
-| 取消重装标记 | 取消选中设备的 PXE 启动标记 |
+| 操作         | 说明                                                         |
+| ------------ | ------------------------------------------------------------ |
+| 批量重装     | 支持修改 Profile、IP（自动递增）、子网掩码、网关、DNS，提交后开启 PXE 并执行 sync |
+| 取消重装标记 | 取消选中设备的 PXE 启动标记                                  |
 
 ### IPMI 管理
 
 批量远程管理服务器 BMC，支持以下操作：
 
-| 操作 | 执行命令 | 说明 |
-|------|----------|------|
-| 电源状态 | `chassis power status` | 查看设备当前开关机状态 |
-| 重启 | `power cycle` | 冷重启设备 |
-| 开机 | `power on` | 远程开机 |
-| 关机 | `power off` | 远程关机 |
-| PXE 启动 | `bootdev pxe options=persistent` → `bootparam set bootflag force_pxe` → `power cycle` → `power on` | 设置永久 PXE 启动并重启 |
-| 光驱启动 | `bootdev cdrom` → `power cycle` → `power on` | 设置光驱启动并重启 |
-| 进入 BIOS | `bootdev bios` → `power cycle` → `power on` | 设置进入 BIOS 并重启 |
+| 操作      | 执行命令                                                     | 说明                    |
+| --------- | ------------------------------------------------------------ | ----------------------- |
+| 电源状态  | `chassis power status`                                       | 查看设备当前开关机状态  |
+| 重启      | `power cycle`                                                | 冷重启设备              |
+| 开机      | `power on`                                                   | 远程开机                |
+| 关机      | `power off`                                                  | 远程关机                |
+| PXE 启动  | `bootdev pxe options=persistent` → `bootparam set bootflag force_pxe` → `power cycle` → `power on` | 设置永久 PXE 启动并重启 |
+| 光驱启动  | `bootdev cdrom` → `power cycle` → `power on`                 | 设置光驱启动并重启      |
+| 进入 BIOS | `bootdev bios` → `power cycle` → `power on`                  | 设置进入 BIOS 并重启    |
 
 **设备列表格式：**
 
@@ -236,27 +236,27 @@ docker run -d \
 
 ## 技术栈
 
-| 组件 | 版本/说明 |
-|------|-----------|
-| Python | 3.11 |
-| Flask | 3.0 |
-| Gunicorn | 生产 WSGI 服务器，4 workers |
-| Cobbler XML-RPC | 通过 `xmlrpc.client` 连接 Cobbler API |
-| ipmitool | 通过 `subprocess` 调用，使用 lanplus 协议 |
-| 前端 | 原生 HTML/CSS/JavaScript，无额外框架 |
-| 字体 | DM Sans + Noto Sans SC（Google Fonts） |
-| 图标 | Bootstrap Icons 1.11.0 |
+| 组件            | 版本/说明                                 |
+| --------------- | ----------------------------------------- |
+| Python          | 3.11                                      |
+| Flask           | 3.0                                       |
+| Gunicorn        | 生产 WSGI 服务器，4 workers               |
+| Cobbler XML-RPC | 通过 `xmlrpc.client` 连接 Cobbler API     |
+| ipmitool        | 通过 `subprocess` 调用，使用 lanplus 协议 |
+| 前端            | 原生 HTML/CSS/JavaScript，无额外框架      |
+| 字体            | DM Sans + Noto Sans SC（Google Fonts）    |
+| 图标            | Bootstrap Icons 1.11.0                    |
 
 ## 端口
 
-| 端口 | 用途 |
-|------|------|
+| 端口 | 用途          |
+| ---- | ------------- |
 | 5000 | Web 界面 HTTP |
 
 ## 环境变量
 
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
+| 变量         | 默认值                          | 说明                             |
+| ------------ | ------------------------------- | -------------------------------- |
 | `SECRET_KEY` | `cobbler-web-dev-key-change-me` | Flask 会话密钥，生产环境建议修改 |
 
 ## 常见问题
@@ -296,5 +296,4 @@ docker exec cobbler-web ipmitool -V
 
 # 如果未安装，重新构建镜像
 docker build -t cobbler-web:latest .
-```
 ```
